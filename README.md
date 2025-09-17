@@ -1,4 +1,4 @@
-c# Shinzo Outpost – Payment Gateway
+# Shinzo Outpost – Payment Gateway
 
 The Outpost contract is a payment gateway for the Shinzo Network. It enables smart contracts and users to make logic-driven payments tied to digital identities and access control policies. Outposts are deployed on the networks they serve, powering Shinzo’s decentralized indexing economy through trustless, verifiable payments.
 
