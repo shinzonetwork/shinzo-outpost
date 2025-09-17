@@ -1,4 +1,4 @@
-# Shinzo Outpost – Payment Gateway
+c# Shinzo Outpost – Payment Gateway
 
 The Outpost contract is a payment gateway for the Shinzo Network. It enables smart contracts and users to make logic-driven payments tied to digital identities and access control policies. Outposts are deployed on the networks they serve, powering Shinzo’s decentralized indexing economy through trustless, verifiable payments.
 
@@ -59,13 +59,13 @@ getPayments(address user)	Returns all payments associated with a user.
 
 ### Prerequisites
 
-(Foundry)[#foundry]
+[Foundry](#foundry)
 
 Node.js & Yarn/NPM (for scripts & tooling if needed)
 
 Install & Build
 # Clone the repo
-git clone https://github.com/<your-org>/shinzo-outpost.git
+git clone https://github.com/shinzonetwork/shinzo-outpost.git
 cd shinzo-outpost
 
 # Install dependencies
