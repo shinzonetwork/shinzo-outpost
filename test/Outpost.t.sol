@@ -6,24 +6,23 @@ import {Outpost} from "../src/Outpost.sol";
 
 contract OutpostTest is Test {
     Outpost public outpost;
-    uint256 count;
 
     function setUp() public {
         outpost = new Outpost();
+        vm.deal(address(this), 100 ether);
     }
 
-    function test_setuo() public {
-        vm.deal(address(this), 100 ether);
+    function test_setup() public {
         uint256 initialCount = outpost.getPaymentCount(address(this));
         assertEq(initialCount, 0);
         uint256 newIndex = outpost.payment{value: 1}("policy1", "identity1", 1);
-        assertEq(newIndex, 1);
-        assertEq(outpost.getPaymentAmount(address(this), newIndex - 1), 1);
+        assertEq(newIndex, 0);
+        assertEq(outpost.getPaymentAmount(address(this), newIndex), 1);
     }
 
     function test_Payment() public {
         uint256 index = outpost.payment{value: 1}("policy1", "identity1", 1);
-        assertEq(index, 1);
+        assertEq(index, 0);
     }
 
     function testFuzz_Payment(string memory policyId, string memory identity, uint256 value) public {
@@ -32,7 +31,7 @@ contract OutpostTest is Test {
         vm.assume(bytes(identity).length > 0);
         vm.assume(value < 100 ether);
 
-        uint256 expectedIndex = outpost.getPaymentCount(address(this)) + 1;
+        uint256 expectedIndex = outpost.getPaymentCount(address(this));
         uint256 index = outpost.payment{value: value}(policyId, identity, 1);
         assertEq(index, expectedIndex);
     }
@@ -42,22 +41,14 @@ contract OutpostTest is Test {
         Outpost.DigitalID memory digitalId = outpost.getDigitalId(address(this));
         assertEq(digitalId.policies.length, 1);
         assertEq(digitalId.policies[0].policyId, "policy1");
-        assertNotEq(bytes(digitalId.policies[0].policyPaymentId).length, 0);
+        assertNotEq(digitalId.policies[0].policyPaymentId, bytes32(0));
     }
 
     function test_ExpirePayment() public {
         uint256 index = outpost.payment{value: 1}("policy1", "identity1", 1);
         vm.warp(block.timestamp + 1);
-        outpost.expirePayment(address(this), index - 1);
-        assertEq(outpost.getPayments(address(this))[index - 1].expired, true);
+        outpost.expirePayment(address(this), index);
+        Outpost.Payment memory p = outpost.getPayment(address(this), index);
+        assertEq(p.expired, true);
     }
-
-    function payment_helper(uint256 value) internal {
-        vm.assume(value > 0);
-        vm.assume(value < 100 ether);
-        uint256 expectedIndex = outpost.getPayments(address(this)).length;
-        uint256 index = outpost.payment{value: value}("policy1", "identity1", 1);
-        assertEq(index, expectedIndex);
-    }
-
 }
