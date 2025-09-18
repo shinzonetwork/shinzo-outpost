@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {Outpost} from "../src/Outpost.sol";
 
 contract OutpostTest is Test {
@@ -38,7 +38,7 @@ contract OutpostTest is Test {
 
     function test_PolicyIsLinkedToDigitalID() public {
         outpost.payment{value: 1}("policy1", "identity1", 1);
-        Outpost.DigitalID memory digitalId = outpost.getDigitalId(address(this));
+        Outpost.DigitalId memory digitalId = outpost.getDigitalId(address(this));
         assertEq(digitalId.policies.length, 1);
         assertEq(digitalId.policies[0].policyId, "policy1");
         assertNotEq(digitalId.policies[0].policyPaymentId, bytes32(0));
@@ -48,7 +48,7 @@ contract OutpostTest is Test {
         uint256 index = outpost.payment{value: 1}("policy1", "identity1", 1);
         vm.warp(block.timestamp + 1);
         outpost.expirePayment(address(this), index);
-        Outpost.Payment memory p = outpost.getPayment(address(this), index);
+        Outpost.PaymentReceipt memory p = outpost.getPayment(address(this), index);
         assertEq(p.expired, true);
     }
 }

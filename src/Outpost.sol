@@ -21,13 +21,13 @@ contract Outpost {
         bytes32 policyPaymentId;
     }
 
-    struct DigitalID {
+    struct DigitalId {
         address user;
         string identity;
         AccessControlPolicy[] policies;
     }
 
-    struct Payment {
+    struct PaymentReceipt {
         AccessControlPolicy policy;
         uint256 amount;
         uint256 timestamp;
@@ -36,9 +36,9 @@ contract Outpost {
     }
 
     // State Variables
-    mapping(address => mapping(uint256 => Payment)) public payments;
+    mapping(address => mapping(uint256 => PaymentReceipt)) public payments;
     mapping(address => uint256) public paymentCount;
-    mapping(address => DigitalID) public digitalIds;
+    mapping(address => DigitalId) public digitalIds;
 
     /**
      * @notice Creates a new payment for a given policy and identity.
@@ -47,26 +47,34 @@ contract Outpost {
      * @param expiration The duration in seconds until the payment expires.
      * @return paymentIndex The index of the newly created payment.
      */
-    function payment(string memory policyId, string memory identity, uint256 expiration) public payable returns (uint256) {
+    function payment(string memory policyId, string memory identity, uint256 expiration)
+        public
+        payable
+        returns (uint256)
+    {
         if (msg.value <= 0) revert PaymentAmountTooLow(msg.value);
         if (bytes(policyId).length == 0) revert PolicyIdDoesNotExist(policyId);
         if (bytes(identity).length == 0) revert DigitalIdDoesNotExist(identity);
 
-        DigitalID storage digitalId = digitalIds[msg.sender];
+        DigitalId storage digitalId = digitalIds[msg.sender];
         if (digitalId.user == address(0)) {
             digitalId.user = msg.sender;
             digitalId.identity = identity;
             emit DigitalIdCreated(msg.sender, identity);
         }
 
-        bytes32 policyPaymentId = keccak256(abi.encodePacked(policyId, msg.sender, block.timestamp));
+        bytes memory encoded = abi.encodePacked(policyId, msg.sender, block.timestamp);
+        bytes32 policyPaymentId;
+        assembly {
+            policyPaymentId := keccak256(add(encoded, 0x20), mload(encoded))
+        }
 
         AccessControlPolicy memory newPolicy = AccessControlPolicy(policyId, policyPaymentId);
 
         digitalId.policies.push(newPolicy);
 
         uint256 paymentIndex = paymentCount[msg.sender];
-        payments[msg.sender][paymentIndex] = Payment({
+        payments[msg.sender][paymentIndex] = PaymentReceipt({
             policy: newPolicy,
             amount: msg.value,
             timestamp: block.timestamp,
@@ -88,10 +96,10 @@ contract Outpost {
      */
     function expirePayment(address user, uint256 paymentIndex) public returns (bool) {
         if (user == address(0)) revert ZeroAddress();
-        Payment storage _payment = payments[user][paymentIndex];
+        PaymentReceipt storage _payment = payments[user][paymentIndex];
         if (_payment.expired) revert PaymentAlreadyExpired();
         if (block.timestamp < _payment.expiration) revert PaymentNotExpired();
-        
+
         _payment.expired = true;
         emit PaymentExpired(user, paymentIndex);
         return true;
@@ -103,7 +111,7 @@ contract Outpost {
      * @param paymentIndex The index of the payment.
      * @return Payment struct.
      */
-    function getPayment(address user, uint256 paymentIndex) public view returns (Payment memory) {
+    function getPayment(address user, uint256 paymentIndex) public view returns (PaymentReceipt memory) {
         if (user == address(0)) revert ZeroAddress();
         return payments[user][paymentIndex];
     }
@@ -134,7 +142,7 @@ contract Outpost {
      * @param user The address of the user.
      * @return DigitalID struct.
      */
-    function getDigitalId(address user) public view returns (DigitalID memory) {
+    function getDigitalId(address user) public view returns (DigitalId memory) {
         if (user == address(0)) revert ZeroAddress();
         return digitalIds[user];
     }
