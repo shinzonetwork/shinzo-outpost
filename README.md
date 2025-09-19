@@ -26,7 +26,7 @@ Payment
 Tracks the amount, timestamp, expiration, and whether the payment has expired.
 
 ## 🔑 Contract Overview
-Errors
+### Errors
 
 PaymentAmountTooLow(uint256 amount) – Reverts if no ETH was sent.
 
@@ -46,14 +46,22 @@ PaymentExpired(address user, uint256 paymentIndex)
 
 ### Key Functions
 
-Function	Description
-payment(string policyId, string identity, uint256 expiration)	Accepts a payment, links it to a user’s Digital ID and policy, stores details, and returns the payment index.
-expirePayment(address user, uint256 paymentIndex)	Marks a payment as expired after its expiration time.
-getPayment(address user, uint256 index)	Returns a specific payment.
-getPaymentAmount(address user, uint256 index)	Returns the amount of a specific payment.
-getPaymentCount(address user)	Returns the total number of payments for a user.
-getDigitalId(address user)	Returns the Digital ID details for a user.
-getPayments(address user)	Returns all payments associated with a user.
+## Key Functions
+
+| Function | Description |
+|----------|-------------|
+| `payment(string policyId, string identity, uint256 expiration)` | Accepts a payment, links a user’s Digital ID to a Role, stores the payment details, and returns the payment index (count). |
+| `expirePayment(address user, uint256 paymentIndex)` | Marks a payment as expired once its expiration timex` has passed. |
+| `getPayment(address user, uint256 index)` | Retrieves a specific payment by index for a given user. |
+| `getPaymentAmount(address user, uint256 index)` | Returns the amount of a specific payment. |
+| `getPaymentCount(address user)` | Returns the total number of payments associated with a user. |
+| `getDigitalId(address user)` | Retrieves the Digital ID details for a user. |
+| `getPayments(address user)` | Returns all payments linked to a specific user. |
+| `mapping(address => mapping(uint256 => PaymentReceipt)) public payments` | Returns the PaymentReceipt from an address & payment index. |
+| `mapping(address => uint256) public paymentCount` | Returns the payment count for an address. |
+| `mapping(address => DigitalId) public digitalIds` | Returns the DID from an address. |
+
+
 
 ## 🛠️ Development (Foundry)
 
@@ -64,20 +72,24 @@ getPayments(address user)	Returns all payments associated with a user.
 Node.js & Yarn/NPM (for scripts & tooling if needed)
 
 Install & Build
-# Clone the repo
+### Clone the repo
+```shell
 git clone https://github.com/shinzonetwork/shinzo-outpost.git
 cd shinzo-outpost
-
-# Install dependencies
+```
+### Install dependencies
+```shell
 forge install
-
-# Build contracts
+```
+### Build contracts
+```shell
 forge build
-
-Run Tests
+```
+### Run Tests
+```shell
 forge test -vv
-
-Deploy (example)
+```
+*Deploy (example)*
 forge script script/DeployOutpost.s.sol:DeployOutpost \
   --rpc-url $RPC_URL \
   --private-key $PRIVATE_KEY \
